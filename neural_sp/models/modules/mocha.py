@@ -492,6 +492,12 @@ class MoChA(nn.Module):
                 # exclusive_cumprod(1 - p_choose_i) = [1, 1, 1, 1, 0, 0, 0, 0]
                 # alpha: product of above           = [0, 0, 0, 1, 0, 0, 0, 0]
                 alpha = p_choose_i * exclusive_cumprod(1 - p_choose_i)  # `[B, H_ma, 1 (qlen), klen]`
+            
+            # can not attend, return zero
+            if alpha.sum() == 0:
+                beta = e_mono.new_zeros((bs, self.n_heads_mono * self.n_heads_chunk, qlen, 1))
+                cv = e_mono.new_zeros(bs, 1, self.adim)
+                return cv, alpha, bet
 
             if eps_wait > 0:
                 for b in range(bs):
